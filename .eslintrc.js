@@ -23,6 +23,10 @@ module.exports = {
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'n8n-nodes-base/node-class-description-display-name-unsuffixed': 'off',
+		// TypeScript types require NodeConnectionType enum, not string literals
+		// The eslint-plugin-n8n-nodes-base rules are outdated
+		'n8n-nodes-base/node-class-description-inputs-wrong-regular-node': 'off',
+		'n8n-nodes-base/node-class-description-outputs-wrong': 'off',
 	},
 	ignorePatterns: ['dist/**', 'node_modules/**', 'package.json'],
 };

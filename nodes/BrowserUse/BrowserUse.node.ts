@@ -3,6 +3,7 @@ import {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	NodeConnectionType,
 	NodeOperationError,
 } from 'n8n-workflow';
 
@@ -17,8 +18,8 @@ export class BrowserUse implements INodeType {
 		defaults: {
 			name: 'Browser Use',
 		},
-		inputs: ['main'] as any,
-		outputs: ['main'] as any,
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
 		credentials: [
 			{
 				name: 'browserUseApi',
