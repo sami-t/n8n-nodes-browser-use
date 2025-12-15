@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-browser-use-cloud",
-	"version": "1.0.3",
+	"version": "1.0.5",
 	"description": "n8n node for Browser Use Cloud API - Automate web tasks with AI agents",
 	"keywords": [
 		"n8n-community-node-package",

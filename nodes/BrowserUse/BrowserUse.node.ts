@@ -27,30 +27,120 @@ export class BrowserUse implements INodeType {
 		],
 		properties: [
 			{
+				displayName: 'Resource',
+				name: 'resource',
+				type: 'options',
+				noDataExpression: true,
+				options: [
+					{
+						name: 'Task',
+						value: 'task',
+					},
+				],
+				default: 'task',
+			},
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['task'],
+					},
+				},
+				options: [
+					{
+						name: 'Execute',
+						value: 'execute',
+						description: 'Execute a task using an AI agent',
+						action: 'Execute a task',
+					},
+					{
+						name: 'Get',
+						value: 'get',
+						description: 'Retrieve details of a task',
+						action: 'Get a task',
+					},
+					{
+						name: 'Get Many',
+						value: 'getMany',
+						description: 'List all tasks in your account',
+						action: 'Get many tasks',
+					},
+					{
+						name: 'Stop',
+						value: 'stop',
+						description: 'Stop a running task',
+						action: 'Stop a task',
+					},
+					{
+						name: 'Update',
+						value: 'update',
+						description: 'Update a task',
+						action: 'Update a task',
+					},
+				],
+				default: 'execute',
+			},
+			{
+				displayName: 'Task ID',
+				name: 'taskId',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['get', 'stop', 'update'],
+					},
+				},
+				placeholder: 'e.g. task_abc123xyz',
+				description: 'The unique identifier of the task',
+				required: true,
+			},
+			{
 				displayName: 'Task Description',
 				name: 'task',
 				type: 'string',
 				default: '',
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['execute'],
+					},
+				},
 				placeholder:
-					'e.g., "Go to Google and search for browser automation" or "Fill out the contact form with my details"',
+					'e.g. Go to Google and search for browser automation',
 				description:
-					'Describe what you want the AI agent to do in natural language (1-20,000 characters)',
+					'Natural language description of what you want the AI agent to do',
 				required: true,
 			},
 			{
-				displayName: 'Starting URL (Optional)',
+				displayName: 'Starting URL',
 				name: 'startUrl',
 				type: 'string',
 				default: '',
-				placeholder: 'https://example.com',
-				description: 'Starting URL for the task (optional)',
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['execute'],
+					},
+				},
+				placeholder: 'e.g. https://example.com',
+				description: 'The URL where the browser should start (optional)',
 			},
 			{
-				displayName: 'Timeout (Seconds)',
+				displayName: 'Timeout',
 				name: 'timeout',
 				type: 'number',
 				default: 300,
-				description: 'Maximum time to wait for task completion (10-3600 seconds)',
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['execute'],
+					},
+				},
+				description: 'Maximum time in seconds to wait for task completion (10-3600 seconds)',
 				typeOptions: {
 					minValue: 10,
 					maxValue: 3600,
@@ -61,6 +151,12 @@ export class BrowserUse implements INodeType {
 				name: 'enableStructuredOutput',
 				type: 'boolean',
 				default: false,
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['execute'],
+					},
+				},
 				description: 'Whether to extract data in a specific JSON format for easier processing',
 			},
 			{
@@ -70,6 +166,8 @@ export class BrowserUse implements INodeType {
 				default: '',
 				displayOptions: {
 					show: {
+						resource: ['task'],
+						operation: ['execute'],
 						enableStructuredOutput: [true],
 					},
 				},
@@ -83,6 +181,8 @@ export class BrowserUse implements INodeType {
 				type: 'options',
 				displayOptions: {
 					show: {
+						resource: ['task'],
+						operation: ['execute'],
 						enableStructuredOutput: [true],
 					},
 				},
@@ -118,7 +218,7 @@ export class BrowserUse implements INodeType {
 					},
 				],
 				default: 'custom',
-				description: 'Choose a pre-built template or define custom format',
+				description: 'Choose a pre-built template or define a custom format',
 			},
 			{
 				displayName:
@@ -127,6 +227,8 @@ export class BrowserUse implements INodeType {
 				type: 'notice',
 				displayOptions: {
 					show: {
+						resource: ['task'],
+						operation: ['execute'],
 						enableStructuredOutput: [true],
 						schemaTemplate: ['product', 'contact', 'article', 'company'],
 					},
@@ -142,6 +244,8 @@ export class BrowserUse implements INodeType {
 				type: 'json',
 				displayOptions: {
 					show: {
+						resource: ['task'],
+						operation: ['execute'],
 						enableStructuredOutput: [true],
 						schemaTemplate: ['custom'],
 					},
@@ -157,13 +261,19 @@ export class BrowserUse implements INodeType {
 				type: 'collection',
 				placeholder: 'Add Option',
 				default: {},
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['execute'],
+					},
+				},
 				options: [
 					{
 						displayName: 'Max Steps',
 						name: 'maxSteps',
 						type: 'number',
 						default: 30,
-						description: 'Maximum number of steps the agent can take (1-200)',
+						description: 'Maximum number of steps the AI agent can take to complete the task',
 						typeOptions: {
 							minValue: 1,
 							maxValue: 200,
@@ -204,7 +314,117 @@ export class BrowserUse implements INodeType {
 							},
 						],
 						default: 'gemini-2.5-flash',
-						description: 'AI model to use for the task',
+						description: 'The AI model to use for executing the task',
+					},
+				],
+			},
+			{
+				displayName: 'Update Fields',
+				name: 'updateFields',
+				type: 'collection',
+				placeholder: 'Add Field',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['update'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Task Description',
+						name: 'task',
+						type: 'string',
+						default: '',
+						placeholder: 'e.g. Go to Google and search for browser automation',
+						description: 'Update the task description',
+					},
+					{
+						displayName: 'Status',
+						name: 'status',
+						type: 'options',
+						options: [
+							{
+								name: 'Running',
+								value: 'running',
+							},
+							{
+								name: 'Stopped',
+								value: 'stopped',
+							},
+						],
+						default: 'running',
+						description: 'Update the task status',
+					},
+				],
+			},
+			{
+				displayName: 'Return All',
+				name: 'returnAll',
+				type: 'boolean',
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['getMany'],
+					},
+				},
+				default: false,
+				description: 'Whether to return all results or only up to a given limit',
+			},
+			{
+				displayName: 'Limit',
+				name: 'limit',
+				type: 'number',
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['getMany'],
+						returnAll: [false],
+					},
+				},
+				typeOptions: {
+					minValue: 1,
+				},
+				default: 50,
+				description: 'Max number of results to return',
+			},
+			{
+				displayName: 'Options',
+				name: 'options',
+				type: 'collection',
+				placeholder: 'Add Option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['task'],
+						operation: ['getMany'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Status',
+						name: 'status',
+						type: 'options',
+						options: [
+							{
+								name: 'All',
+								value: 'all',
+							},
+							{
+								name: 'Finished',
+								value: 'finished',
+							},
+							{
+								name: 'Running',
+								value: 'running',
+							},
+							{
+								name: 'Stopped',
+								value: 'stopped',
+							},
+						],
+						default: 'all',
+						description: 'Filter tasks by their status',
 					},
 				],
 			},
@@ -234,17 +454,37 @@ export class BrowserUse implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
+		const resource = this.getNodeParameter('resource', 0) as string;
+		const operation = this.getNodeParameter('operation', 0) as string;
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				const responseData = await executeTask.call(this, i);
+				let responseData: any;
 
-				returnData.push({
-					json: responseData,
-					pairedItem: {
-						item: i,
-					},
-				});
+				if (resource === 'task') {
+					if (operation === 'execute') {
+						responseData = await executeTask.call(this, i);
+					} else if (operation === 'get') {
+						responseData = await getTask.call(this, i);
+					} else if (operation === 'getMany') {
+						responseData = await getTasks.call(this, i);
+					} else if (operation === 'stop') {
+						responseData = await stopTask.call(this, i);
+					} else if (operation === 'update') {
+						responseData = await updateTask.call(this, i);
+					}
+				}
+
+				if (Array.isArray(responseData)) {
+					returnData.push(...responseData);
+				} else {
+					returnData.push({
+						json: responseData,
+						pairedItem: {
+							item: i,
+						},
+					});
+				}
 			} catch (error) {
 				if (this.continueOnFail()) {
 					returnData.push({
@@ -282,7 +522,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 	if (!task.trim()) {
 		throw new NodeOperationError(
 			this.getNode(),
-			'Task description is required and cannot be empty',
+			'The "Task Description" parameter cannot be empty. Please provide a description of what you want the AI agent to do.',
 			{ level: 'warning' },
 		);
 	}
@@ -291,7 +531,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 	if (task.trim().length > 20000) {
 		throw new NodeOperationError(
 			this.getNode(),
-			'Task description must be 20,000 characters or less',
+			'The "Task Description" exceeds the maximum length of 20,000 characters. Please shorten your description.',
 			{ level: 'warning' },
 		);
 	}
@@ -303,7 +543,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 		} catch {
 			throw new NodeOperationError(
 				this.getNode(),
-				'Invalid URL format. Please provide a valid URL starting with http:// or https://',
+				'The "Starting URL" parameter has an invalid format. Please provide a valid URL starting with http:// or https://',
 				{ level: 'warning' },
 			);
 		}
@@ -313,7 +553,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 	if (timeout < 10 || timeout > 3600) {
 		throw new NodeOperationError(
 			this.getNode(),
-			'Timeout must be between 10 and 3600 seconds (1 hour)',
+			'The "Timeout" parameter must be between 10 and 3600 seconds. Please adjust the timeout value.',
 			{ level: 'warning' },
 		);
 	}
@@ -344,7 +584,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 				if (!schema || typeof schema !== 'object') {
 					throw new NodeOperationError(
 						this.getNode(),
-						'Invalid JSON schema: Schema must be a valid JSON object or array',
+						'The "Custom Data Format" must be a valid JSON object or array. Please check your JSON syntax.',
 						{ level: 'warning' },
 					);
 				}
@@ -354,14 +594,14 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 					if (schema.length === 0) {
 						throw new NodeOperationError(
 							this.getNode(),
-							'Invalid JSON schema: Array schema cannot be empty. Please provide at least one example object.',
+							'The "Custom Data Format" array cannot be empty. Please provide at least one example object to define the structure.',
 							{ level: 'warning' },
 						);
 					}
 					if (typeof schema[0] !== 'object' || schema[0] === null) {
 						throw new NodeOperationError(
 							this.getNode(),
-							'Invalid JSON schema: Array items must be objects. Example: [{"name": "string", "age": "number"}]',
+							'The "Custom Data Format" array items must be objects. Example: [{"name": "string", "age": "number"}]',
 							{ level: 'warning' },
 						);
 					}
@@ -371,21 +611,21 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 					if (!validTypes.includes(schema.type)) {
 						throw new NodeOperationError(
 							this.getNode(),
-							`Invalid JSON schema: Unknown type "${schema.type}". Valid types are: ${validTypes.join(', ')}`,
+							`The "Custom Data Format" has an unknown type "${schema.type}". Valid types are: ${validTypes.join(', ')}`,
 							{ level: 'warning' },
 						);
 					}
 					if (schema.type === 'object' && !schema.properties) {
 						throw new NodeOperationError(
 							this.getNode(),
-							'Invalid JSON schema: Object type must have "properties" field',
+							'The "Custom Data Format" object type must have a "properties" field. Please define the object structure.',
 							{ level: 'warning' },
 						);
 					}
 					if (schema.type === 'array' && !schema.items) {
 						throw new NodeOperationError(
 							this.getNode(),
-							'Invalid JSON schema: Array type must have "items" field',
+							'The "Custom Data Format" array type must have an "items" field. Please define the array item structure.',
 							{ level: 'warning' },
 						);
 					}
@@ -396,14 +636,14 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 				}
 				throw new NodeOperationError(
 					this.getNode(),
-					`Invalid JSON schema: ${(error as any).message}. Please check your JSON syntax.`,
+					`The "Custom Data Format" has invalid JSON syntax: ${(error as any).message}. Please check your JSON format.`,
 					{ level: 'warning' },
 				);
 			}
 		} else {
 			throw new NodeOperationError(
 				this.getNode(),
-				'Structured output is enabled but no schema is provided. Please select a template or provide a custom JSON schema.',
+				'"Extract Structured Data" is enabled but no schema is provided. Please select a data template or provide a custom JSON schema.',
 				{ level: 'warning' },
 			);
 		}
@@ -484,7 +724,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 	if (!response.id) {
 		throw new NodeOperationError(
 			this.getNode(),
-			'Invalid response from Browser Use API: missing task id',
+			'The Browser Use API returned an unexpected response without a task ID. Please try again or contact support if the issue persists.',
 			{ level: 'warning' },
 		);
 	}
@@ -519,7 +759,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 		} else if (taskDetails.status === 'stopped') {
 			throw new NodeOperationError(
 				this.getNode(),
-				`Task was stopped: ${taskDetails.error || taskDetails.output || 'Task execution was halted'}`,
+				`The task was stopped: ${taskDetails.error || taskDetails.output || 'Task execution was halted'}. Please check the task configuration and try again.`,
 				{ level: 'warning' },
 			);
 		}
@@ -531,7 +771,7 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 	const finalTask = await makeApiCall.call(this, 'GET', `/tasks/${taskId}`);
 	return {
 		...formatOutput(finalTask),
-		warning: `Task did not complete within ${timeout} seconds but may still be running`,
+		warning: `The task did not complete within ${timeout} seconds but may still be running on the server`,
 		cloudUrl: finalTask.sessionId
 			? `https://cloud.browser-use.com/agent/${finalTask.sessionId}`
 			: null,
@@ -549,25 +789,27 @@ async function makeApiCall(
 	endpoint: string,
 	body?: any,
 ): Promise<any> {
-	const credentials = await this.getCredentials('browserUseApi');
-	const baseUrl = credentials.baseUrl as string;
-
 	const options: any = {
 		method,
-		url: `${baseUrl}${endpoint}`,
+		baseURL: '={{$credentials.baseUrl}}',
+		url: endpoint,
 		headers: {
 			'Content-Type': 'application/json',
-			'X-Browser-Use-API-Key': credentials.apiKey as string,
 		},
 		timeout: 30000,
+		json: true,
 	};
 
 	if (body) {
-		options.body = JSON.stringify(body);
+		options.body = body;
 	}
 
 	try {
-		const response = await this.helpers.httpRequest(options);
+		const response = await this.helpers.httpRequestWithAuthentication.call(
+			this,
+			'browserUseApi',
+			options,
+		);
 		return response;
 	} catch (error: unknown) {
 		// Handle different types of API errors
@@ -602,26 +844,26 @@ async function makeApiCall(
 
 			switch (statusCode) {
 				case 400:
-					throw new NodeOperationError(this.getNode(), `Bad request: ${errorMessage}`, {
+					throw new NodeOperationError(this.getNode(), `The request could not be processed: ${errorMessage}. Please check your parameters and try again.`, {
 						level: 'warning',
 					});
 				case 401:
 					throw new NodeOperationError(
 						this.getNode(),
-						'Authentication failed. Please check your API key.',
+						'Authentication was not successful. Please verify your API key in the credentials is correct.',
 						{ level: 'warning' },
 					);
 				case 404:
-					throw new NodeOperationError(this.getNode(), `Resource not found: ${errorMessage}`, {
+					throw new NodeOperationError(this.getNode(), `The requested resource could not be found: ${errorMessage}. Please verify the resource exists.`, {
 						level: 'warning',
 					});
 				case 422: {
 					// Provide more detailed error message for validation errors
-					let detailedMessage = 'Validation error: ';
+					let detailedMessage = 'The request parameters could not be validated: ';
 					if (errorMessage) {
 						detailedMessage += errorMessage;
 					} else {
-						detailedMessage += 'The request parameters are invalid. ';
+						detailedMessage += 'One or more parameters are invalid';
 					}
 
 					// Add helpful hints for common 422 errors
@@ -649,34 +891,135 @@ async function makeApiCall(
 				case 500:
 					throw new NodeOperationError(
 						this.getNode(),
-						`Browser Use API server error: ${errorMessage}`,
+						`The Browser Use API encountered a server issue: ${errorMessage}. Please try again later or contact support if the issue persists.`,
 						{ level: 'warning' },
 					);
 				default:
 					throw new NodeOperationError(
 						this.getNode(),
-						`API request failed (${statusCode}): ${errorMessage}`,
+						`The API request was not successful (status ${statusCode}): ${errorMessage}. Please check your configuration and try again.`,
 						{ level: 'warning' },
 					);
 			}
 		} else if ((error as any).code === 'ECONNREFUSED') {
 			throw new NodeOperationError(
 				this.getNode(),
-				'Could not connect to Browser Use API. Please check if the service is available.',
+				'Connection to the Browser Use API could not be established. Please verify the service is available and try again.',
 				{ level: 'warning' },
 			);
 		} else if ((error as any).code === 'ETIMEDOUT') {
 			throw new NodeOperationError(
 				this.getNode(),
-				'Request to Browser Use API timed out. Please try again.',
+				'The request to the Browser Use API timed out. Please check your network connection and try again.',
 				{ level: 'warning' },
 			);
 		}
 
-		throw new NodeOperationError(this.getNode(), `Unexpected error: ${(error as any).message}`, {
+		throw new NodeOperationError(this.getNode(), `An unexpected issue occurred: ${(error as any).message}. Please try again or contact support if the issue persists.`, {
 			level: 'warning',
 		});
 	}
+}
+
+async function getTask(this: IExecuteFunctions, itemIndex: number): Promise<any> {
+	const taskId = this.getNodeParameter('taskId', itemIndex) as string;
+
+	if (!taskId || !taskId.trim()) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'The "Task ID" parameter is required. Please provide a valid task ID.',
+			{ level: 'warning' },
+		);
+	}
+
+	const response = await makeApiCall.call(this, 'GET', `/tasks/${taskId.trim()}`);
+	return response;
+}
+
+async function getTasks(this: IExecuteFunctions, itemIndex: number): Promise<any> {
+	const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
+	const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+	const options = this.getNodeParameter('options', itemIndex, {}) as any;
+
+	let response = await makeApiCall.call(this, 'GET', '/tasks');
+
+	// Filter by status if specified
+	if (options.status && options.status !== 'all' && Array.isArray(response)) {
+		response = response.filter((task: any) => task.status === options.status);
+	}
+
+	// Apply limit if not returning all
+	if (!returnAll && Array.isArray(response)) {
+		response = response.slice(0, limit);
+	}
+
+	// Return as array of items for n8n
+	if (Array.isArray(response)) {
+		return response.map((task: any) => ({
+			json: task,
+		}));
+	}
+
+	return response;
+}
+
+async function stopTask(this: IExecuteFunctions, itemIndex: number): Promise<any> {
+	const taskId = this.getNodeParameter('taskId', itemIndex) as string;
+
+	if (!taskId || !taskId.trim()) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'The "Task ID" parameter is required. Please provide a valid task ID.',
+			{ level: 'warning' },
+		);
+	}
+
+	// For v2 API, we can use PATCH to update the status to stopped
+	const body = {
+		status: 'stopped',
+	};
+
+	const response = await makeApiCall.call(this, 'PATCH', `/tasks/${taskId.trim()}`, body);
+
+	return {
+		success: true,
+		message: 'Task stopped successfully',
+		...response,
+	};
+}
+
+async function updateTask(this: IExecuteFunctions, itemIndex: number): Promise<any> {
+	const taskId = this.getNodeParameter('taskId', itemIndex) as string;
+	const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as any;
+
+	if (!taskId || !taskId.trim()) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'The "Task ID" parameter is required. Please provide a valid task ID.',
+			{ level: 'warning' },
+		);
+	}
+
+	if (!updateFields || Object.keys(updateFields).length === 0) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'No fields to update were provided. Please add at least one field to update in the "Update Fields" collection.',
+			{ level: 'warning' },
+		);
+	}
+
+	const body: any = {};
+
+	if (updateFields.task) {
+		body.task = updateFields.task;
+	}
+
+	if (updateFields.status) {
+		body.status = updateFields.status;
+	}
+
+	const response = await makeApiCall.call(this, 'PATCH', `/tasks/${taskId.trim()}`, body);
+	return response;
 }
 
 function getSchemaTemplate(templateType: string): any {
