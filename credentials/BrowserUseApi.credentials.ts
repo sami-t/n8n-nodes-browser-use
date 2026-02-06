@@ -41,7 +41,7 @@ export class BrowserUseApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/ping',
+			url: '/tasks',
 			method: 'GET',
 		},
 	};

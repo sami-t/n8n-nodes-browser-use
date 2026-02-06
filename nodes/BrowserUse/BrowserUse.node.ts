@@ -806,9 +806,10 @@ async function makeApiCall(
 	endpoint: string,
 	body?: any,
 ): Promise<any> {
+	const credentials = await this.getCredentials('browserUseApi');
 	const options: any = {
 		method,
-		baseURL: '={{$credentials.baseUrl}}',
+		baseURL: credentials.baseUrl as string,
 		url: endpoint,
 		headers: {
 			'Content-Type': 'application/json',
