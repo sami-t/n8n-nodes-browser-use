@@ -110,10 +110,8 @@ export class BrowserUse implements INodeType {
 						operation: ['execute'],
 					},
 				},
-				placeholder:
-					'e.g. Go to Google and search for browser automation',
-				description:
-					'Natural language description of what you want the AI agent to do',
+				placeholder: 'e.g. Go to Google and search for browser automation',
+				description: 'Natural language description of what you want the AI agent to do',
 				required: true,
 			},
 			{
@@ -270,17 +268,6 @@ export class BrowserUse implements INodeType {
 				},
 				options: [
 					{
-						displayName: 'Max Steps',
-						name: 'maxSteps',
-						type: 'number',
-						default: 30,
-						description: 'Maximum number of steps the AI agent can take to complete the task',
-						typeOptions: {
-							minValue: 1,
-							maxValue: 200,
-						},
-					},
-					{
 						displayName: 'AI Model',
 						name: 'llm',
 						type: 'options',
@@ -332,6 +319,172 @@ export class BrowserUse implements INodeType {
 						],
 						default: 'browser-use-2.0',
 						description: 'The AI model to use for executing the task',
+					},
+					{
+						displayName: 'Allowed Domains',
+						name: 'allowedDomains',
+						type: 'json',
+						default: '[]',
+						description:
+							'Limit browsing to specific domains (JSON array of strings, e.g. ["example.com","docs.example.com"])',
+					},
+					{
+						displayName: 'Flash Mode',
+						name: 'flashMode',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to enable flash mode for faster execution',
+					},
+					{
+						displayName: 'Highlight Elements',
+						name: 'highlightElements',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to highlight elements on the page during execution',
+					},
+					{
+						displayName: 'Judge',
+						name: 'judge',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to enable judging of task results',
+					},
+					{
+						displayName: 'Judge Ground Truth',
+						name: 'judgeGroundTruth',
+						type: 'string',
+						default: '',
+						description: 'Ground truth data for judging (optional)',
+					},
+					{
+						displayName: 'Judge LLM',
+						name: 'judgeLlm',
+						type: 'options',
+						options: [
+							{
+								name: 'Browser Use 2.0 (Default)',
+								value: 'browser-use-2.0',
+							},
+							{
+								name: 'Browser Use LLM',
+								value: 'browser-use-llm',
+							},
+							{
+								name: 'Claude Opus 4.5',
+								value: 'claude-opus-4-5-20251101',
+							},
+							{
+								name: 'Claude Sonnet 4.5',
+								value: 'claude-sonnet-4-5-20250929',
+							},
+							{
+								name: 'Gemini 3 Flash Preview',
+								value: 'gemini-3-flash-preview',
+							},
+							{
+								name: 'Gemini 3 Pro Preview',
+								value: 'gemini-3-pro-preview',
+							},
+							{
+								name: 'Gemini Flash Latest',
+								value: 'gemini-flash-latest',
+							},
+							{
+								name: 'Gemini Flash Lite Latest',
+								value: 'gemini-flash-lite-latest',
+							},
+							{
+								name: 'GPT-4.1',
+								value: 'gpt-4.1',
+							},
+							{
+								name: 'GPT-4.1 Mini',
+								value: 'gpt-4.1-mini',
+							},
+							{
+								name: 'O3',
+								value: 'o3',
+							},
+						],
+						default: 'browser-use-2.0',
+						description: 'The AI model to use for judging results',
+					},
+					{
+						displayName: 'Max Steps',
+						name: 'maxSteps',
+						type: 'number',
+						default: 30,
+						description: 'Maximum number of steps the AI agent can take to complete the task',
+						typeOptions: {
+							minValue: 1,
+							maxValue: 200,
+						},
+					},
+					{
+						displayName: 'Metadata',
+						name: 'metadata',
+						type: 'json',
+						default: '{}',
+						description:
+							'Additional metadata to attach to the task (JSON object, string values only)',
+					},
+					{
+						displayName: 'Op Vault ID',
+						name: 'opVaultId',
+						type: 'string',
+						default: '',
+						description: 'Operation vault ID to use for this task',
+					},
+					{
+						displayName: 'Secrets',
+						name: 'secrets',
+						type: 'json',
+						default: '{}',
+						description:
+							'Secrets available to the agent during execution (JSON object, string values only)',
+					},
+					{
+						displayName: 'Session ID',
+						name: 'sessionId',
+						type: 'string',
+						default: '',
+						description:
+							'Run this task within an existing session to reuse browser state (optional)',
+					},
+					{
+						displayName: 'System Prompt Extension',
+						name: 'systemPromptExtension',
+						type: 'string',
+						default: '',
+						description: 'Additional system prompt instructions for the agent',
+					},
+					{
+						displayName: 'Thinking',
+						name: 'thinking',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to enable reasoning visualization for the task',
+					},
+					{
+						displayName: 'Vision',
+						name: 'vision',
+						type: 'options',
+						options: [
+							{
+								name: 'Auto',
+								value: 'auto',
+							},
+							{
+								name: 'Enabled',
+								value: true,
+							},
+							{
+								name: 'Disabled',
+								value: false,
+							},
+						],
+						default: 'auto',
+						description: 'Enable vision capabilities (auto, enabled, disabled)',
 					},
 				],
 			},
@@ -535,6 +688,31 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 	const outputSchema = this.getNodeParameter('outputSchema', itemIndex, '') as string;
 	const advancedOptions = this.getNodeParameter('advancedOptions', itemIndex, {}) as any;
 
+	const parseJsonOption = (value: unknown, fallback: any) => {
+		if (!value) {
+			return fallback;
+		}
+		if (typeof value === 'string') {
+			try {
+				return JSON.parse(value);
+			} catch {
+				return fallback;
+			}
+		}
+		return value;
+	};
+
+	const parsedMetadata = parseJsonOption(advancedOptions.metadata, null);
+	const parsedSecrets = parseJsonOption(advancedOptions.secrets, null);
+	const parsedAllowedDomains = parseJsonOption(advancedOptions.allowedDomains, null);
+
+	const metadata = {
+		source: 'n8n-node',
+		...(parsedMetadata && typeof parsedMetadata === 'object' && !Array.isArray(parsedMetadata)
+			? parsedMetadata
+			: {}),
+	};
+
 	// Validate required parameters
 	if (!task.trim()) {
 		throw new NodeOperationError(
@@ -581,9 +759,34 @@ async function executeTask(this: IExecuteFunctions, itemIndex: number): Promise<
 		...(startUrl && startUrl.trim() && { startUrl: startUrl.trim() }),
 		...(advancedOptions.maxSteps && { maxSteps: advancedOptions.maxSteps }),
 		llm: advancedOptions.llm || 'browser-use-2.0',
-		metadata: {
-			source: 'n8n-node',
-		},
+		...(advancedOptions.sessionId && {
+			sessionId:
+				typeof advancedOptions.sessionId === 'string'
+					? advancedOptions.sessionId.trim()
+					: advancedOptions.sessionId,
+		}),
+		...(parsedAllowedDomains && Array.isArray(parsedAllowedDomains)
+			? { allowedDomains: parsedAllowedDomains }
+			: {}),
+		...(parsedSecrets && typeof parsedSecrets === 'object' && !Array.isArray(parsedSecrets)
+			? { secrets: parsedSecrets }
+			: {}),
+		...(advancedOptions.opVaultId && { opVaultId: advancedOptions.opVaultId }),
+		...(advancedOptions.highlightElements && {
+			highlightElements: advancedOptions.highlightElements,
+		}),
+		...(advancedOptions.flashMode && { flashMode: advancedOptions.flashMode }),
+		...(advancedOptions.thinking && { thinking: advancedOptions.thinking }),
+		...(advancedOptions.vision !== undefined && { vision: advancedOptions.vision }),
+		...(advancedOptions.systemPromptExtension && {
+			systemPromptExtension: advancedOptions.systemPromptExtension,
+		}),
+		...(advancedOptions.judge && { judge: advancedOptions.judge }),
+		...(advancedOptions.judgeGroundTruth && {
+			judgeGroundTruth: advancedOptions.judgeGroundTruth,
+		}),
+		...(advancedOptions.judgeLlm && { judgeLlm: advancedOptions.judgeLlm }),
+		metadata,
 	};
 
 	// Add structured output if enabled
@@ -862,9 +1065,13 @@ async function makeApiCall(
 
 			switch (statusCode) {
 				case 400:
-					throw new NodeOperationError(this.getNode(), `The request could not be processed: ${errorMessage}. Please check your parameters and try again.`, {
-						level: 'warning',
-					});
+					throw new NodeOperationError(
+						this.getNode(),
+						`The request could not be processed: ${errorMessage}. Please check your parameters and try again.`,
+						{
+							level: 'warning',
+						},
+					);
 				case 401:
 					throw new NodeOperationError(
 						this.getNode(),
@@ -872,9 +1079,13 @@ async function makeApiCall(
 						{ level: 'warning' },
 					);
 				case 404:
-					throw new NodeOperationError(this.getNode(), `The requested resource could not be found: ${errorMessage}. Please verify the resource exists.`, {
-						level: 'warning',
-					});
+					throw new NodeOperationError(
+						this.getNode(),
+						`The requested resource could not be found: ${errorMessage}. Please verify the resource exists.`,
+						{
+							level: 'warning',
+						},
+					);
 				case 422: {
 					// Provide more detailed error message for validation errors
 					let detailedMessage = 'The request parameters could not be validated: ';
@@ -933,9 +1144,13 @@ async function makeApiCall(
 			);
 		}
 
-		throw new NodeOperationError(this.getNode(), `An unexpected issue occurred: ${(error as any).message}. Please try again or contact support if the issue persists.`, {
-			level: 'warning',
-		});
+		throw new NodeOperationError(
+			this.getNode(),
+			`An unexpected issue occurred: ${(error as any).message}. Please try again or contact support if the issue persists.`,
+			{
+				level: 'warning',
+			},
+		);
 	}
 }
 
